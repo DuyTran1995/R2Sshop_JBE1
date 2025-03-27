@@ -1,11 +1,13 @@
 package com.jbe01.r2sshop.service.Impl;
 
 import com.jbe01.r2sshop.entity.Products;
+import com.jbe01.r2sshop.handler.error.BadRequestException;
 import com.jbe01.r2sshop.handler.error.NotFoundException;
 import com.jbe01.r2sshop.repository.ProductsRepository;
 import com.jbe01.r2sshop.service.ProductsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +19,11 @@ public class ProductsServiceImpl implements ProductsService {
     ProductsRepository productsRepository;
 
     public List<Products> findAll(PageRequest pageRequest) {
-        return productsRepository.findAll(pageRequest).stream().toList();
+        try {
+            return productsRepository.findAll(pageRequest).stream().toList();
+        }  catch (PropertyReferenceException e) {
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     public Products findById(long id) {

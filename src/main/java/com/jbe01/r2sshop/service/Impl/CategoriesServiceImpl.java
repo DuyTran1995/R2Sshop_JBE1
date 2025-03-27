@@ -2,12 +2,14 @@ package com.jbe01.r2sshop.service.Impl;
 
 import com.jbe01.r2sshop.entity.Categories;
 import com.jbe01.r2sshop.entity.Products;
+import com.jbe01.r2sshop.handler.error.BadRequestException;
 import com.jbe01.r2sshop.handler.error.NotFoundException;
 import com.jbe01.r2sshop.repository.CategoriesRepository;
 import com.jbe01.r2sshop.service.CategoriesService;
 import com.jbe01.r2sshop.service.ProductsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +24,11 @@ public class CategoriesServiceImpl implements CategoriesService {
     private ProductsService productsService;
 
     public List<Categories> findAll(PageRequest pageRequest) {
-        return categoriesRepository.findAll(pageRequest).stream().toList();
+        try {
+            return categoriesRepository.findAll(pageRequest).stream().toList();
+        } catch (PropertyReferenceException e) {
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     public Categories findById(long id) {

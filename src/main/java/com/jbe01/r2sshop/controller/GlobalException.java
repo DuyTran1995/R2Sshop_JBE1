@@ -1,6 +1,7 @@
 package com.jbe01.r2sshop.controller;
 
 import com.jbe01.r2sshop.handler.ErrorResponse;
+import com.jbe01.r2sshop.handler.error.BadRequestException;
 import com.jbe01.r2sshop.handler.error.ForbiddenException;
 import com.jbe01.r2sshop.handler.error.NotFoundException;
 import com.jbe01.r2sshop.handler.error.ResourceNotFoundException;
@@ -11,6 +12,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalException {
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
+        ErrorResponse error = ErrorResponse.of(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
         ErrorResponse error = ErrorResponse.of(HttpStatus.NOT_FOUND, ex.getMessage());
