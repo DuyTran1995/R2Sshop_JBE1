@@ -7,42 +7,40 @@ import com.jbe01.r2sshop.repository.CategoriesRepository;
 import com.jbe01.r2sshop.service.CategoriesService;
 import com.jbe01.r2sshop.service.ProductsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class CategoriesServiceImpl implements CategoriesService {
+
     @Autowired
     private CategoriesRepository categoriesRepository;
 
     @Autowired
     private ProductsService productsService;
 
-    public List<Categories> findAll() {
-        return categoriesRepository.findAll();
+    public List<Categories> findAll(PageRequest pageRequest) {
+        return categoriesRepository.findAll(pageRequest).stream().toList();
     }
 
     public Categories findById(long id) {
         return categoriesRepository.findById(id).orElseThrow(() -> new NotFoundException("Categories not found: " + id));
     }
 
-    public Categories findByName(String name) {
-        return null;
-    }
-
     public Categories save(Categories categories) {
         return categoriesRepository.save(categories);
     }
 
-    public void delete(Categories categories) {
-        var foundCategory = this.findById(categories.getId());
+    public void delete(long id) {
+        var foundCategory = this.findById(id);
 
         categoriesRepository.delete(foundCategory);
     }
 
-    public void updateCategory(Categories categories) {
-        var foundCategory = this.findById(categories.getId());
+    public void updateCategory(Categories categories, long id) {
+        var foundCategory = this.findById(id);
 
         foundCategory.setName(categories.getName());
         foundCategory.setDescription(categories.getDescription());
@@ -51,15 +49,17 @@ public class CategoriesServiceImpl implements CategoriesService {
 
     }
 
-    public boolean assignProductToCategory(Long productId, Long categoryId) {
+    public void assignProductToCategory(Long productId, Long categoryId) {
         Products product = productsService.findById(productId);
 
         Categories category = this.findById(categoryId);
 
-        category.getProducts().add(product);
+        product.setCategories(category);
 
-        categoriesRepository.save(category);
+        productsService.save(product);
+    }
 
-        return true;
+    public int countCategories() {
+        return (int) categoriesRepository.count();
     }
 }

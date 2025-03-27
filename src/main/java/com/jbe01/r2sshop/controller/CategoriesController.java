@@ -6,12 +6,14 @@ import com.jbe01.r2sshop.dto.responses.ProductsResponseDto;
 import com.jbe01.r2sshop.handler.SuccessResponse;
 import com.jbe01.r2sshop.mapper.CategoriesMapper;
 import com.jbe01.r2sshop.mapper.ProductsMapper;
+import com.jbe01.r2sshop.model.Metadata;
 import com.jbe01.r2sshop.service.CategoriesService;
 import com.jbe01.r2sshop.service.ProductsService;
+import com.jbe01.r2sshop.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,12 +33,24 @@ public class CategoriesController {
     @Autowired
     private ProductsMapper productsMapper;
 
-    @Secured({ "ROLE_ADMIN" })
     @GetMapping("")
-    public ResponseEntity<SuccessResponse<List<CategoriesResponseDto>>> getAllCategories() {
-        var categories = categoriesService.findAll();
+    public ResponseEntity<SuccessResponse<List<CategoriesResponseDto>>> getAllCategories(
+            @RequestParam(defaultValue = "0", required = false, name = "page") int page,
+            @RequestParam(defaultValue = "10", required = false, name = "size") int size,
+            @RequestParam(name = "sorts", required = false) String sorts
+    ) {
 
-        return SuccessResponse.of(categoriesMapper.listCategoriesToListDto(categories)).toResponseEntity();
+        PageRequest pageRequest = PaginationUtil.pageRequest(page, size, sorts);
+
+        Metadata metadata = new Metadata();
+
+        metadata.setPageNumber(page);
+        metadata.setPageSize(size);
+        metadata.setTotalCount(categoriesService.countCategories());
+
+        var categories = categoriesService.findAll(pageRequest);
+
+        return SuccessResponse.of(categoriesMapper.listCategoriesToListDto(categories), metadata).toResponseEntity();
     }
 
     @GetMapping("/{id}")
@@ -47,10 +61,24 @@ public class CategoriesController {
     }
 
     @GetMapping("/{categoryId}/products")
-    public ResponseEntity<SuccessResponse<List<ProductsResponseDto>>> getProductsByCategoriesId(@PathVariable long categoryId) {
-        var products = productsService.findProductsByCategoriesId(categoryId);
+    public ResponseEntity<SuccessResponse<List<ProductsResponseDto>>> getProductsByCategoriesId(
+            @PathVariable long categoryId,
+            @RequestParam(defaultValue = "0", required = false, name = "page") int page,
+            @RequestParam(defaultValue = "10", required = false, name = "size") int size,
+            @RequestParam(name = "sorts", required = false) String sorts
 
-        return SuccessResponse.of(productsMapper.toListDto(products)).toResponseEntity();
+    ) {
+        PageRequest pageRequest = PaginationUtil.pageRequest(page, size, sorts);
+
+        Metadata metadata = new Metadata();
+
+        metadata.setPageNumber(page);
+        metadata.setPageSize(size);
+        metadata.setTotalCount(productsService.countProductsByCategoriesId(categoryId));
+
+        var products = productsService.findProductsByCategoriesId(categoryId, pageRequest);
+
+        return SuccessResponse.of(productsMapper.toListDto(products), metadata).toResponseEntity();
     }
 
     @PostMapping("")
@@ -61,17 +89,23 @@ public class CategoriesController {
     }
 
     @PutMapping("")
-    public void update(@RequestBody CategoryRequestDto categories) {
-        categoriesService.updateCategory(categoriesMapper.categoryRequestDtoToCategories(categories));
+    public void update(
+            @RequestBody CategoryRequestDto categories,
+            @RequestParam(name = "categoryId") long id
+    ) {
+        categoriesService.updateCategory(categoriesMapper.categoryRequestDtoToCategories(categories), id);
     }
 
     @DeleteMapping("")
-    public void delete(@RequestBody CategoryRequestDto categories) {
-        categoriesService.delete(categoriesMapper.categoryRequestDtoToCategories(categories));
+    public void delete(@RequestParam(name = "categoryId") long id) {
+        categoriesService.delete(id);
     }
 
-    @PostMapping("/{productId}/{categoryId}")
-    public void assignProductToCategory(@PathVariable long productId, @PathVariable long categoryId) {
+    @PostMapping("/assignProduct")
+    public void assignProductToCategory(
+            @RequestParam(name = "productId") long productId,
+            @RequestParam(name = "categoryId") long categoryId) {
+
         categoriesService.assignProductToCategory(productId, categoryId);
     }
 }

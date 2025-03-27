@@ -7,5 +7,4 @@ public class Metadata {
     private int pageSize;
     private int pageNumber;
     private int totalCount;
-    private int totalPage;
 }
