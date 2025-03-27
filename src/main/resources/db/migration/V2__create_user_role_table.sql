@@ -32,7 +32,15 @@ INSERT INTO roles (name)
 VALUES ('USER');
 
 INSERT INTO users (first_name, last_name, password, email, phone, enabled)
+VALUES ('Operator', 'User', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', 'operator@example.com',
+        '123456789', 1);
+
+INSERT INTO users (first_name, last_name, password, email, phone, enabled)
 VALUES ('Admin', 'User', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', 'admin@example.com',
+        '123456789', 1);
+
+INSERT INTO users (first_name, last_name, password, email, phone, enabled)
+VALUES ('User', 'User', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', 'user@example.com',
         '123456789', 1);
 
 # Assign Operator for admin account
@@ -40,5 +48,19 @@ INSERT IGNORE INTO user_role (user_id, role_id)
 SELECT u.id, r.id
 FROM users u,
      roles r
-WHERE u.email = 'admin@example.com'
+WHERE u.email = 'operator@example.com'
   AND r.name = 'OPERATOR';
+
+INSERT IGNORE INTO user_role (user_id, role_id)
+SELECT u.id, r.id
+FROM users u,
+     roles r
+WHERE u.email = 'admin@example.com'
+  AND r.name = 'Admin';
+
+INSERT IGNORE INTO user_role (user_id, role_id)
+SELECT u.id, r.id
+FROM users u,
+     roles r
+WHERE u.email = 'user@example.com'
+  AND r.name = 'User';

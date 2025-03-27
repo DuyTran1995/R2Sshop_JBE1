@@ -56,4 +56,8 @@ public class UserServiceImpl implements UserService {
 
         return SignInResponseDto.builder().accessToken(jwt).build();
     }
+
+    public Users findByEmail(String email) {
+        return userRepository.findUserByEmail(email).orElseThrow(() -> new NotFoundException("User not found" + email));
+    }
 }

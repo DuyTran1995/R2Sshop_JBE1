@@ -1,5 +1,6 @@
 package com.jbe01.r2sshop.controller;
 
+import com.jbe01.r2sshop.aspect.HasRoles;
 import com.jbe01.r2sshop.dto.requests.CategoryRequestDto;
 import com.jbe01.r2sshop.dto.responses.CategoriesResponseDto;
 import com.jbe01.r2sshop.dto.responses.ProductsResponseDto;
@@ -13,7 +14,6 @@ import com.jbe01.r2sshop.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,6 +82,7 @@ public class CategoriesController {
     }
 
     @PostMapping("")
+    @HasRoles({"OPERATOR", "ADMIN"})
     public ResponseEntity<SuccessResponse<CategoriesResponseDto>> create(@RequestBody CategoryRequestDto categories) {
         var category = categoriesService.save(categoriesMapper.categoryRequestDtoToCategories(categories));
 
@@ -89,6 +90,7 @@ public class CategoriesController {
     }
 
     @PutMapping("")
+    @HasRoles({"OPERATOR", "ADMIN"})
     public void update(
             @RequestBody CategoryRequestDto categories,
             @RequestParam(name = "categoryId") long id
@@ -97,11 +99,13 @@ public class CategoriesController {
     }
 
     @DeleteMapping("")
+    @HasRoles({"OPERATOR", "ADMIN"})
     public void delete(@RequestParam(name = "categoryId") long id) {
         categoriesService.delete(id);
     }
 
     @PostMapping("/assignProduct")
+    @HasRoles({"OPERATOR", "ADMIN"})
     public void assignProductToCategory(
             @RequestParam(name = "productId") long productId,
             @RequestParam(name = "categoryId") long categoryId) {

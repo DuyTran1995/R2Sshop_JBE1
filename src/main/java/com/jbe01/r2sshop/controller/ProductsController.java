@@ -1,5 +1,6 @@
 package com.jbe01.r2sshop.controller;
 
+import com.jbe01.r2sshop.aspect.HasRoles;
 import com.jbe01.r2sshop.dto.requests.ProductRequestDto;
 import com.jbe01.r2sshop.dto.responses.ProductsResponseDto;
 import com.jbe01.r2sshop.handler.SuccessResponse;
@@ -54,11 +55,13 @@ public class ProductsController {
     }
 
     @DeleteMapping("")
+    @HasRoles({"OPERATOR"})
     public void delete(@RequestParam long id) {
         productsService.delete(id);
     }
 
     @PutMapping()
+    @HasRoles({"OPERATOR", "ADMIN"})
     public void update(
             @RequestParam(name = "productId") long id,
             @RequestBody ProductRequestDto productRequestDto
