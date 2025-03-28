@@ -31,7 +31,9 @@ public class ProductsServiceImpl implements ProductsService {
     }
 
     public void delete(long id) {
-        this.findById(id);
+        var foundUser = this.findById(id);
+
+        productsRepository.delete(foundUser);
     }
 
     public void update(Products products, long id) {

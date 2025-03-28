@@ -3,10 +3,8 @@ package com.jbe01.r2sshop.controller;
 import com.jbe01.r2sshop.dto.requests.SignInRequestDto;
 import com.jbe01.r2sshop.dto.requests.SignUpRequestDto;
 import com.jbe01.r2sshop.dto.responses.SignInResponseDto;
-import com.jbe01.r2sshop.dto.responses.UserResponseDto;
 import com.jbe01.r2sshop.entity.Users;
 import com.jbe01.r2sshop.handler.SuccessResponse;
-import com.jbe01.r2sshop.mapper.UserMapper;
 import com.jbe01.r2sshop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UserMapper userMapper;
 
     @PostMapping("/sign-up")
     public ResponseEntity<SuccessResponse<Users>> createAuthenticationToken(@RequestBody SignUpRequestDto request) {

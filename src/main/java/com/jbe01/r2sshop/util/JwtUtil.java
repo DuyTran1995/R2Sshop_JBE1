@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -72,10 +73,10 @@ public class JwtUtil {
     public boolean checkRoles(String... roles) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Users user = userRepository.findUserByEmail(userDetails.getUsername()).orElseThrow(() -> new NotFoundException("User not found"));
+        Users user = userRepository.findUserByEmail(userDetails.getUsername()).orElseThrow(() -> new NotFoundException("User not found" + userDetails.getUsername()));
 
         Stream<String> userRoles = user.getUserRoles().stream().map((userRole -> userRole.getRoles().getName()));
 
-        return userRoles.toList().containsAll(Arrays.asList(roles));
+        return new HashSet<>(userRoles.toList()).containsAll(Arrays.asList(roles));
     }
 }

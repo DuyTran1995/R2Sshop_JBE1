@@ -8,11 +8,13 @@ import com.jbe01.r2sshop.repository.UserRepository;
 import com.jbe01.r2sshop.service.UserService;
 import com.jbe01.r2sshop.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -59,5 +61,44 @@ public class UserServiceImpl implements UserService {
 
     public Users findByEmail(String email) {
         return userRepository.findUserByEmail(email).orElseThrow(() -> new NotFoundException("User not found" + email));
+    }
+
+    public Users findById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found" + id));
+    }
+
+    public List<Users> findAll(PageRequest pageRequest) {
+        return userRepository.findAll(pageRequest).stream().toList();
+    }
+
+    public void delete(Long id) {
+        var foundUser = this.findById(id);
+
+        // Sort delete
+        foundUser.setEnabled(false);
+
+        userRepository.save(foundUser);
+    }
+
+    public void update(Users users, Long id) {
+        var foundUser = this.findById(id);
+
+        foundUser.setFirstName(users.getFirstName());
+        foundUser.setLastName(users.getLastName());
+        foundUser.setPhone(users.getPhone());
+        foundUser.setEmail(users.getEmail());
+        userRepository.save(foundUser);
+    }
+
+    public List<Users> findUsersByIsEnabled(boolean isEnabled) {
+        return userRepository.findUsersByEnabled(isEnabled);
+    }
+
+    public int countUsersByIsEnabled(boolean isEnabled) {
+        return userRepository.countUsersByEnabled(isEnabled);
+    }
+
+    public int countUsers() {
+        return (int) userRepository.count();
     }
 }

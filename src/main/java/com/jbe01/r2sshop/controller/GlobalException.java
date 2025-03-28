@@ -1,10 +1,7 @@
 package com.jbe01.r2sshop.controller;
 
 import com.jbe01.r2sshop.handler.ErrorResponse;
-import com.jbe01.r2sshop.handler.error.BadRequestException;
-import com.jbe01.r2sshop.handler.error.ForbiddenException;
-import com.jbe01.r2sshop.handler.error.NotFoundException;
-import com.jbe01.r2sshop.handler.error.ResourceNotFoundException;
+import com.jbe01.r2sshop.handler.error.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,6 +9,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalException {
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        ErrorResponse error = ErrorResponse.of(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {

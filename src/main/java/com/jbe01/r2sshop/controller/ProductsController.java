@@ -57,7 +57,7 @@ public class ProductsController {
     @DeleteMapping("")
     @HasRoles({"OPERATOR"})
     public void delete(@RequestParam long id) {
-        productsService.delete(id);
+//        productsService.delete(id);
     }
 
     @PutMapping()
