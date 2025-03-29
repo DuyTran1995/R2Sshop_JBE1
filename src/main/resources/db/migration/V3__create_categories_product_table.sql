@@ -2,7 +2,9 @@ CREATE TABLE IF NOT EXISTS categories
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(255) NOT NULL,
-    description TEXT
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS products
@@ -13,7 +15,9 @@ CREATE TABLE IF NOT EXISTS products
     description    TEXT,
     stock_quantity INTEGER DEFAULT 0,
     categories_id  BIGINT         NULL,
-    FOREIGN KEY (categories_id) REFERENCES categories (id)
+    FOREIGN KEY (categories_id) REFERENCES categories (id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 

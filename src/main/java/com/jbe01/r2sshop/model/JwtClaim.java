@@ -16,4 +16,7 @@ public class JwtClaim {
     private String phone;
     private String firstName;
     private String lastName;
+    private String sub;
+    private Long iat;
+    private Long exp;
 }
