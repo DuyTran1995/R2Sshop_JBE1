@@ -11,7 +11,7 @@ public class PaginationUtil {
     public static PageRequest pageRequest(int page, int size, String sorts) {
         PageRequest pageRequest = PageRequest.of(page, size);
 
-        if (!StringUtils.isEmpty(sorts)) {
+        if (!StringUtils.hasLength(sorts)) {
             List<Sort.Order> orders = new ArrayList<>();
             String[] sortPairs = sorts.split(",");
 

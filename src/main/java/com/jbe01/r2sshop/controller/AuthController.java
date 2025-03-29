@@ -3,8 +3,12 @@ package com.jbe01.r2sshop.controller;
 import com.jbe01.r2sshop.dto.requests.SignInRequestDto;
 import com.jbe01.r2sshop.dto.requests.SignUpRequestDto;
 import com.jbe01.r2sshop.dto.responses.SignInResponseDto;
+import com.jbe01.r2sshop.dto.responses.UserResponseDto;
+import com.jbe01.r2sshop.entity.Roles;
 import com.jbe01.r2sshop.entity.Users;
 import com.jbe01.r2sshop.handler.SuccessResponse;
+import com.jbe01.r2sshop.service.RoleService;
+import com.jbe01.r2sshop.service.UserRoleService;
 import com.jbe01.r2sshop.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,14 +17,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private UserRoleService userRoleService;
+
     @PostMapping("/sign-up")
-    public ResponseEntity<SuccessResponse<Users>> createAuthenticationToken(@RequestBody SignUpRequestDto request) {
+    public ResponseEntity<SuccessResponse<UserResponseDto>> createAuthenticationToken(@RequestBody SignUpRequestDto request) {
+
         Users users = Users.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
@@ -29,11 +43,29 @@ public class AuthController {
                 .phone(request.getPhone())
                 .build();
 
-
         var user = userService.signUp(users);
+        List<String> userRoles = new ArrayList<>();
 
 
-        return SuccessResponse.of(user).toResponseEntity();
+        for (String role : request.getRoles()) {
+            Roles getRoleFromRequest = roleService.findRoleByName(role);
+
+            var addRole = userRoleService.save(getRoleFromRequest, users);
+
+            userRoles.add(addRole.getRoles().getName());
+
+        }
+
+        UserResponseDto userResponseDto = UserResponseDto.builder()
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phone(user.getPhone())
+                .roles(userRoles)
+                .enabled(user.isEnabled())
+                .build();
+
+        return SuccessResponse.of(userResponseDto).toResponseEntity();
     }
 
     @PostMapping("/sign-in")
