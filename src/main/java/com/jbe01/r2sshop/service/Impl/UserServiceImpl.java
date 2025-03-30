@@ -50,6 +50,7 @@ public class UserServiceImpl implements UserService {
         extractClaim.put("lastName", foundUser.getLastName());
         extractClaim.put("phone", foundUser.getPhone());
         extractClaim.put("email", foundUser.getEmail());
+        extractClaim.put("user_id", foundUser.getId());
         extractClaim.put("roles", foundUser.getUserRoles().stream()
                 .map(userRole -> userRole.getRoles().getName())
                 .collect(Collectors.toList()));
@@ -74,10 +75,7 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         var foundUser = this.findById(id);
 
-        // Sort delete
-        foundUser.setEnabled(false);
-
-        userRepository.save(foundUser);
+        userRepository.delete(foundUser);
     }
 
     public void update(Users users, Long id) {

@@ -1,22 +1,24 @@
 package com.jbe01.r2sshop.util;
 
+import com.jbe01.r2sshop.entity.Roles;
 import com.jbe01.r2sshop.entity.Users;
 import com.jbe01.r2sshop.handler.error.NotFoundException;
 import com.jbe01.r2sshop.repository.UserRepository;
+import com.jbe01.r2sshop.service.RoleService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.apache.catalina.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
@@ -25,23 +27,50 @@ public class JwtUtil {
     @Autowired
     UserRepository userRepository;
 
-    //    @Value( "${jwt.config.security-key}" )
-    private static String SECRET_KEY = "your-256-bit-secret-key-here-very-long-and-secure";
+    @Autowired
+    RoleService roleService;
 
-    //    @Value("${jwt.config.expiration-time}}")
-    private static long EXPIRATION_TIME = 1000 * 60 * 60 * 10;
+    @Value("${jwt.config.security-key}")
+    private String SECRET_KEY;
+
+    @Value("${jwt.config.expiration-time}")
+    private String EXPIRATION_TIME;
 
     public String generateToken(UserDetails userDetails, Map<String, Object> extractClaim) {
         return Jwts.builder().claims(extractClaim)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .expiration(new Date(System.currentTimeMillis() + Integer.parseInt(EXPIRATION_TIME) * 1000L))
                 .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long extractUserIdFromToken(String token) {
+        try {
+            Claims claims = this.extractAllClaims(token);
+            Object userId = claims.get("user_id");
+            if (userId == null) {
+                throw new NotFoundException("User ID not found in token");
+            }
+
+            Long userIdValue = null;
+
+            if (userId instanceof Integer) {
+                userIdValue = ((Integer) userId).longValue();
+            } else if (userId instanceof Long) {
+                userIdValue = (Long) userId;
+            } else {
+                throw new RuntimeException("User ID is not a valid number: " + userId);
+            }
+
+            return userIdValue;
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
+        }
     }
 
     public Date extractExpiration(String token) {
@@ -77,6 +106,8 @@ public class JwtUtil {
 
         Stream<String> userRoles = user.getUserRoles().stream().map((userRole -> userRole.getRoles().getName()));
 
-        return new HashSet<>(userRoles.toList()).containsAll(Arrays.asList(roles));
+        Set<String> requiredRoles = new HashSet<>(Arrays.asList(roles));
+
+        return userRoles.anyMatch(requiredRoles::contains);
     }
 }

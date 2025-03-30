@@ -47,8 +47,6 @@ public class ProductsController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SuccessResponse<ProductsResponseDto>> findById(@PathVariable long id) {
-
-
         var products = productsService.findById(id);
 
         return SuccessResponse.of((productsMapper.toDto(products))).toResponseEntity();
@@ -57,7 +55,7 @@ public class ProductsController {
     @DeleteMapping("")
     @HasRoles({"OPERATOR"})
     public void delete(@RequestParam long id) {
-//        productsService.delete(id);
+        productsService.delete(id);
     }
 
     @PutMapping()

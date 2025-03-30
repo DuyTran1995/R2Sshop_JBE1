@@ -1,11 +1,14 @@
 package com.jbe01.r2sshop.controller;
 
 import com.jbe01.r2sshop.aspect.HasRoles;
+import com.jbe01.r2sshop.dto.responses.UserResponseDto;
 import com.jbe01.r2sshop.entity.Users;
 import com.jbe01.r2sshop.handler.SuccessResponse;
 import com.jbe01.r2sshop.model.Metadata;
 import com.jbe01.r2sshop.service.UserService;
+import com.jbe01.r2sshop.util.JwtUtil;
 import com.jbe01.r2sshop.util.PaginationUtil;
+import com.jbe01.r2sshop.util.RequestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,10 @@ import java.util.List;
 public class UsersController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private RequestUtil requestUtil;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping("")
     @HasRoles({"OPERATOR", "ADMIN"})
@@ -37,22 +44,41 @@ public class UsersController {
         return SuccessResponse.of(userService.findAll(pageRequest)).toResponseEntity();
     }
 
-    @GetMapping("/{id}")
-    @HasRoles({"OPERATOR", "ADMIN", "USER"})
-    public ResponseEntity<SuccessResponse<Users>> findById(@PathVariable long id) {
-        return SuccessResponse.of(userService.findById(id)).toResponseEntity();
+    @GetMapping("/profile")
+    @HasRoles({"USER", "OPERATOR", "ADMIN"})
+    public ResponseEntity<SuccessResponse<UserResponseDto>> findById() {
+        String token = requestUtil.getTokenFromRequest();
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+        Users user = userService.findById(userId);
+
+
+        var profile = UserResponseDto.builder()
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .enabled(user.isEnabled())
+                .roles(user.getUserRoles().stream().map((userRole -> userRole.getRoles().getName())).toList())
+                .build();
+
+        return SuccessResponse.of(profile).toResponseEntity();
     }
 
-    @PutMapping("")
-    @HasRoles({"OPERATOR", "ADMIN"})
-    public void update(@RequestBody Users user, @RequestParam long id) {
-        userService.update(user, id);
+    @PutMapping("/profile")
+    @HasRoles({"OPERATOR", "ADMIN", "USER"})
+    public void update(@RequestBody Users user) {
+
+        String token = requestUtil.getTokenFromRequest();
+        Long userId = jwtUtil.extractUserIdFromToken(token);
+
+        userService.update(user, userId);
     }
 
     @DeleteMapping("")
     @HasRoles({"OPERATOR", "ADMIN"})
-    public void delete(@RequestBody Users user, @RequestParam long id) {
-        userService.update(user, id);
+    public void delete(@RequestParam(name = "userId") long userId) {
+        userService.delete(userId);
     }
 
     @GetMapping("/by-status")
