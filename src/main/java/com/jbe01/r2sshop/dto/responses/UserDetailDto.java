@@ -1,18 +1,12 @@
 package com.jbe01.r2sshop.dto.responses;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserResponseDto {
+public class UserDetailDto {
     private String firstName;
     private String lastName;
     private String email;

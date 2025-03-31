@@ -1,70 +1,95 @@
 package com.jbe01.r2sshop.service.Impl;
 
-import com.jbe01.r2sshop.dto.requests.CartRequestDto;
+import com.jbe01.r2sshop.entity.Cart;
 import com.jbe01.r2sshop.entity.CartItem;
-import com.jbe01.r2sshop.entity.Products;
 import com.jbe01.r2sshop.entity.Users;
+import com.jbe01.r2sshop.handler.error.NotFoundException;
+import com.jbe01.r2sshop.repository.CartItemRepository;
 import com.jbe01.r2sshop.repository.CartRepository;
+import com.jbe01.r2sshop.repository.UserRepository;
 import com.jbe01.r2sshop.service.CartService;
-import com.jbe01.r2sshop.service.ProductsService;
-import com.jbe01.r2sshop.service.UserService;
 import com.jbe01.r2sshop.util.JwtUtil;
 import com.jbe01.r2sshop.util.RequestUtil;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
-    @Autowired
-    CartRepository cartRepository;
 
     @Autowired
-    UserService userService;
-
+    private final CartRepository cartRepository;
     @Autowired
-    ProductsService productsService;
-
+    private final UserRepository usersRepository;
     @Autowired
-    RequestUtil requestUtil;
-
+    private final CartItemRepository cartItemRepository;
     @Autowired
-    JwtUtil jwtUtil;
+    private RequestUtil requestUtil;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    public List<CartItem> findCartItemsByUserId(Long userId) {
-        return cartRepository.findByUserId(userId);
+    Long getCurrentUserId() {
+        String token = requestUtil.getTokenFromRequest();
+        return jwtUtil.extractUserIdFromToken(token);
     }
 
-    public void createCart(CartRequestDto cartItem) {
+    Cart findCartByUser() {
+        var userId = getCurrentUserId();
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found " + userId));
 
-        String token = requestUtil.getTokenFromRequest();
-        Long userId = jwtUtil.extractUserIdFromToken(token);
-        Users users = userService.findById(userId);
-
-
-        Optional<CartItem> foundProductInCart = cartRepository.findByProduct_Id(cartItem.getProductId());
-
-        if (foundProductInCart.isPresent()) {
-
-            int totalQty = foundProductInCart.get().getQuantity() + cartItem.getQuantity();
+        return cartRepository.findByUser_Id(user.getId()).orElseThrow(() -> new NotFoundException("Cart not found with userId: " + userId));
+    }
 
 
-            foundProductInCart.get().setQuantity(totalQty);
+    public Cart createCart() {
+        Long userId = getCurrentUserId();
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-            cartRepository.save(foundProductInCart.get());
-            return;
+        Optional<Cart> existingCart = cartRepository.findByUser_Id(userId);
+        if (existingCart.isPresent()) {
+            return existingCart.get();
         }
 
-        Products products = productsService.findById(cartItem.getProductId());
-
-        var cart = CartItem.builder()
-                .user(users)
-                .product(products)
-                .quantity(cartItem.getQuantity())
+        Cart cart = Cart.builder()
+                .user(user)
+                .cartItems(new ArrayList<>())
                 .build();
 
-        cartRepository.save(cart);
+        return cartRepository.save(cart);
+    }
+
+    public Cart getCart() {
+        Cart cart = this.findCartByUser();
+
+        Hibernate.initialize(cart.getCartItems());
+        for (CartItem item : cart.getCartItems()) {
+            Hibernate.initialize(item.getProduct());
+        }
+        return cart;
+    }
+
+    public Cart updateCart(List<CartItem> updatedItems) {
+        Cart cart = this.findCartByUser();
+
+        cart.getCartItems().clear();
+        cartItemRepository.deleteAll(cart.getCartItems());
+
+        updatedItems.forEach(item -> item.setCart(cart));
+        cart.getCartItems().addAll(updatedItems);
+
+        return cartRepository.save(cart);
+    }
+
+    public void deleteCart() {
+        Cart cart = this.findCartByUser();
+        cartRepository.delete(cart);
     }
 }

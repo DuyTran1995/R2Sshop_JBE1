@@ -3,10 +3,11 @@ package com.jbe01.r2sshop.controller;
 import com.jbe01.r2sshop.dto.requests.SignInRequestDto;
 import com.jbe01.r2sshop.dto.requests.SignUpRequestDto;
 import com.jbe01.r2sshop.dto.responses.SignInResponseDto;
-import com.jbe01.r2sshop.dto.responses.UserResponseDto;
+import com.jbe01.r2sshop.dto.responses.UserDetailDto;
 import com.jbe01.r2sshop.entity.Roles;
 import com.jbe01.r2sshop.entity.Users;
 import com.jbe01.r2sshop.handler.SuccessResponse;
+import com.jbe01.r2sshop.mapper.UserMapper;
 import com.jbe01.r2sshop.service.RoleService;
 import com.jbe01.r2sshop.service.UserRoleService;
 import com.jbe01.r2sshop.service.UserService;
@@ -31,9 +32,11 @@ public class AuthController {
 
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private UserMapper userMapper;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<SuccessResponse<UserResponseDto>> createAuthenticationToken(@RequestBody SignUpRequestDto request) {
+    public ResponseEntity<SuccessResponse<UserDetailDto>> createAuthenticationToken(@RequestBody SignUpRequestDto request) {
 
         Users users = Users.builder()
                 .email(request.getEmail())
@@ -53,19 +56,11 @@ public class AuthController {
             var addRole = userRoleService.save(getRoleFromRequest, users);
 
             userRoles.add(addRole.getRoles().getName());
-
         }
 
-        UserResponseDto userResponseDto = UserResponseDto.builder()
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .phone(user.getPhone())
-                .roles(userRoles)
-                .enabled(user.isEnabled())
-                .build();
+        var mappingToDto = userMapper.toDetailDTO(user);
 
-        return SuccessResponse.of(userResponseDto).toResponseEntity();
+        return SuccessResponse.of(mappingToDto).toResponseEntity();
     }
 
     @PostMapping("/sign-in")

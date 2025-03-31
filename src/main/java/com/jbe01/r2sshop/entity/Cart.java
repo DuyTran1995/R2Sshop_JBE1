@@ -14,28 +14,17 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "products")
-public class Products {
+@Table(name = "carts")
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private Double price;
-
-    private String description;
-
-    @Column(name = "stock_quantity", nullable = false)
-    private Integer stockQuantity;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categories_id", referencedColumnName = "id")
-    private Categories categories;
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cart", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<CartItem> cartItems;
 
     @CreationTimestamp
@@ -44,5 +33,5 @@ public class Products {
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Date modifiedAt;
+    private Date updatedAt;
 }

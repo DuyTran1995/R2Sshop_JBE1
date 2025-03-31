@@ -1,13 +1,12 @@
 package com.jbe01.r2sshop.repository;
 
-import com.jbe01.r2sshop.entity.CartItem;
+import com.jbe01.r2sshop.entity.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface CartRepository extends JpaRepository<CartItem, Long> {
-    List<CartItem> findByUserId(Long userId);
-
-    Optional<CartItem> findByProduct_Id(Long productId);
+@Repository
+public interface CartRepository extends JpaRepository<Cart, Long> {
+    Optional<Cart> findByUser_Id(Long userId);
 }

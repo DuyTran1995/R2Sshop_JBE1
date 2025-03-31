@@ -33,7 +33,7 @@ public class Users {
     List<UserRole> userRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<CartItem> cartItems = new ArrayList<>();
+    private List<Cart> carts;
 
     @CreationTimestamp
     @Column(name = "created_at")

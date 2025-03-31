@@ -1,9 +1,11 @@
 package com.jbe01.r2sshop.controller;
 
 import com.jbe01.r2sshop.aspect.HasRoles;
-import com.jbe01.r2sshop.dto.responses.UserResponseDto;
+import com.jbe01.r2sshop.dto.responses.UserDetailDto;
+import com.jbe01.r2sshop.dto.responses.UserListDto;
 import com.jbe01.r2sshop.entity.Users;
 import com.jbe01.r2sshop.handler.SuccessResponse;
+import com.jbe01.r2sshop.mapper.UserMapper;
 import com.jbe01.r2sshop.model.Metadata;
 import com.jbe01.r2sshop.service.UserService;
 import com.jbe01.r2sshop.util.JwtUtil;
@@ -25,10 +27,12 @@ public class UsersController {
     private RequestUtil requestUtil;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private UserMapper userMapper;
 
     @GetMapping("")
     @HasRoles({"OPERATOR", "ADMIN"})
-    public ResponseEntity<SuccessResponse<List<Users>>> findAll(
+    public ResponseEntity<SuccessResponse<List<UserListDto>>> findAll(
             @RequestParam(defaultValue = "0", required = false, name = "page") int page,
             @RequestParam(defaultValue = "10", required = false, name = "size") int size,
             @RequestParam(name = "sorts", required = false) String sorts
@@ -41,26 +45,20 @@ public class UsersController {
         metadata.setPageSize(size);
         metadata.setTotalCount(userService.countUsers());
 
-        return SuccessResponse.of(userService.findAll(pageRequest)).toResponseEntity();
+        var userResponseDto = userMapper.listUserResponseToListUsers(userService.findAll(pageRequest));
+
+        return SuccessResponse.of(userResponseDto, metadata).toResponseEntity();
     }
 
     @GetMapping("/profile")
     @HasRoles({"USER", "OPERATOR", "ADMIN"})
-    public ResponseEntity<SuccessResponse<UserResponseDto>> findById() {
+    public ResponseEntity<SuccessResponse<UserDetailDto>> findById() {
         String token = requestUtil.getTokenFromRequest();
         Long userId = jwtUtil.extractUserIdFromToken(token);
         Users user = userService.findById(userId);
 
 
-        var profile = UserResponseDto.builder()
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .enabled(user.isEnabled())
-                .roles(user.getUserRoles().stream().map((userRole -> userRole.getRoles().getName())).toList())
-                .build();
+        var profile = userMapper.toDetailDTO(user);
 
         return SuccessResponse.of(profile).toResponseEntity();
     }
