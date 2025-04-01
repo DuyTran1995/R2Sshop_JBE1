@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@HasRoles({"USER"})
 @RequestMapping("/api/v1/carts")
 public class CartController {
 
@@ -24,12 +23,14 @@ public class CartController {
     @Autowired
     private CartMapper cartMapper;
 
+    @HasRoles({"USER"})
     @PostMapping
     public ResponseEntity<SuccessResponse<Cart>> createCart() {
         Cart cart = cartService.createCart();
         return SuccessResponse.of(cart).toResponseEntity();
     }
 
+    @HasRoles({"USER"})
     @GetMapping
     public ResponseEntity<SuccessResponse<CartResponseDTO>> getCart() {
         Cart cart = cartService.getCart();
@@ -37,12 +38,14 @@ public class CartController {
         return SuccessResponse.of(cartMapper.toCartResponseDTO(cart)).toResponseEntity();
     }
 
+    @HasRoles({"USER"})
     @PutMapping
     public ResponseEntity<SuccessResponse<CartResponseDTO>> updateCart(@RequestBody List<CartItem> updatedItems) {
         Cart updatedCart = cartService.updateCart(updatedItems);
         return SuccessResponse.of(cartMapper.toCartResponseDTO(updatedCart)).toResponseEntity();
     }
 
+    @HasRoles({"USER"})
     @DeleteMapping
     public void deleteCart() {
         cartService.deleteCart();

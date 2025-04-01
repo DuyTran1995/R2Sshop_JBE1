@@ -35,7 +35,7 @@ public class OrderDetails {
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Date modifiedAt;
+    private Date updatedAt;
 
     @OneToMany(mappedBy = "orderDetails", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItems> orderItems = new ArrayList<>();

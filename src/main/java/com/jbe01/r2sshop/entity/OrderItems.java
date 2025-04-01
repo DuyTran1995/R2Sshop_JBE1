@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
@@ -27,11 +28,10 @@ public class OrderItems {
     @JoinColumn(name = "product_id", nullable = false)
     private Products product;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private Date createdAt;
+    @Column(nullable = false)
+    private Integer quantity;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Date modifiedAt;
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal price;
+
 }

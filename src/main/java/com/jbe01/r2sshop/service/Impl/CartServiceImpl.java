@@ -39,7 +39,7 @@ public class CartServiceImpl implements CartService {
         return jwtUtil.extractUserIdFromToken(token);
     }
 
-    Cart findCartByUser() {
+    public Cart findCartByUser() {
         var userId = getCurrentUserId();
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found " + userId));

@@ -6,6 +6,8 @@ import com.jbe01.r2sshop.entity.CartItem;
 import java.util.List;
 
 public interface CartService {
+    Cart findCartByUser();
+
     Cart createCart();
 
     Cart getCart();
