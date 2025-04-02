@@ -11,11 +11,11 @@ import com.jbe01.r2sshop.service.ProductsService;
 import com.jbe01.r2sshop.service.UserService;
 import com.jbe01.r2sshop.util.RequestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -43,10 +43,10 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Order not found"));
     }
 
-    public List<OrderDetails> getOrdersByUser() {
+    public List<OrderDetails> getOrdersByUser(PageRequest pageRequest) {
         Long usersId = requestUtil.getCurrentUserId();
 
-        return orderRepository.findOrderDetailsByUser_Id(usersId);
+        return orderRepository.findOrderDetailsByUser_Id(usersId, pageRequest);
     }
 
     public OrderDetails createOrder() {
@@ -104,14 +104,54 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
-    public List<OrderDetails> getOrders() {
-        return orderRepository.findAll();
+    public List<OrderDetails> getOrders(PageRequest pageRequest) {
+        return orderRepository.findAll(pageRequest).stream().toList();
     }
 
-    public void updateOrder(OrderDetails order) {
+    public void updateOrder(Long orderId, OrderDetails updatedOrder) {
+        OrderDetails existingOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Not found order by id: " + orderId));
+
+        if (updatedOrder.getTotal() != null) {
+            existingOrder.setTotal(updatedOrder.getTotal());
+        }
+
+        if (updatedOrder.getOrderItems() != null && !updatedOrder.getOrderItems().isEmpty()) {
+            existingOrder.getOrderItems().clear();
+
+            for (OrderItems newItem : updatedOrder.getOrderItems()) {
+                Products product = productsService.findById(newItem.getProduct().getId());
+
+
+                int oldQuantity = existingOrder.getOrderItems().stream()
+                        .filter(item -> item.getProduct().getId().equals(product.getId()))
+                        .map(OrderItems::getQuantity)
+                        .findFirst()
+                        .orElse(0);
+                int quantityDifference = newItem.getQuantity() - oldQuantity;
+
+                if (quantityDifference > 0 && product.getStockQuantity() < quantityDifference) {
+                    throw new BadRequestException("Sản phẩm " + product.getName() + " không đủ tồn kho để cập nhật.");
+                }
+
+                product.setStockQuantity(product.getStockQuantity() - quantityDifference);
+                productsService.save(product);
+
+                OrderItems orderItem = OrderItems.builder()
+                        .orderDetails(existingOrder)
+                        .product(product)
+                        .quantity(newItem.getQuantity())
+                        .price(newItem.getPrice() != null ? newItem.getPrice() : BigDecimal.valueOf(product.getStockQuantity()))
+                        .build();
+                existingOrder.getOrderItems().add(orderItem);
+            }
+        }
+
+        orderRepository.save(existingOrder);
     }
 
     public void deleteOrder(long id) {
-
+        OrderDetails orderDetails = this.getOrder(id);
+        orderRepository.delete(orderDetails);
     }
 }
