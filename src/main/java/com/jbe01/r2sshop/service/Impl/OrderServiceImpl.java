@@ -154,4 +154,12 @@ public class OrderServiceImpl implements OrderService {
         OrderDetails orderDetails = this.getOrder(id);
         orderRepository.delete(orderDetails);
     }
+
+    public int countOrders() {
+        return (int) orderRepository.count();
+    }
+
+    public int countOrdersByUser() {
+        return orderRepository.countByUser_Id(requestUtil.getCurrentUserId());
+    }
 }

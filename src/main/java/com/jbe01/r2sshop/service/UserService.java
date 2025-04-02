@@ -15,7 +15,5 @@ public interface UserService {
     List<Users> findAll(PageRequest pageRequest);
     void delete(Long id);
     void update(Users users, Long id);
-    List<Users> findUsersByIsEnabled(boolean isEnabled);
-    int countUsersByIsEnabled(boolean isEnabled);
     int countUsers();
 }

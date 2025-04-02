@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<OrderDetails, Long> {
     List<OrderDetails> findOrderDetailsByUser_Id(Long userId, PageRequest pageRequest);
+
+    int countByUser_Id(Long userId);
 }

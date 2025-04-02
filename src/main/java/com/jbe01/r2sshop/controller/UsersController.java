@@ -78,12 +78,4 @@ public class UsersController {
     public void delete(@RequestParam(name = "userId") long userId) {
         userService.delete(userId);
     }
-
-    @GetMapping("/by-status")
-    @HasRoles({"OPERATOR", "ADMIN"})
-    public ResponseEntity<SuccessResponse<List<Users>>> findAllByIsEnabled(
-            @RequestParam(name = "isEnabled", defaultValue = "true") boolean isEnabled
-    ) {
-        return SuccessResponse.of(userService.findUsersByIsEnabled(isEnabled)).toResponseEntity();
-    }
 }

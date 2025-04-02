@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
 
     public void delete(Long id) {
         var foundUser = this.findById(id);
-
+        foundUser.setEnabled(false);
         userRepository.delete(foundUser);
     }
 
@@ -86,14 +86,6 @@ public class UserServiceImpl implements UserService {
         foundUser.setPhone(users.getPhone());
         foundUser.setEmail(users.getEmail());
         userRepository.save(foundUser);
-    }
-
-    public List<Users> findUsersByIsEnabled(boolean isEnabled) {
-        return userRepository.findUsersByEnabled(isEnabled);
-    }
-
-    public int countUsersByIsEnabled(boolean isEnabled) {
-        return userRepository.countUsersByEnabled(isEnabled);
     }
 
     public int countUsers() {

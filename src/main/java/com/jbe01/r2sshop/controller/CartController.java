@@ -25,9 +25,11 @@ public class CartController {
 
     @HasRoles({"USER"})
     @PostMapping
-    public ResponseEntity<SuccessResponse<Cart>> createCart() {
+    public ResponseEntity<SuccessResponse<CartResponseDTO>> createCart() {
         Cart cart = cartService.createCart();
-        return SuccessResponse.of(cart).toResponseEntity();
+
+        CartResponseDTO cartResponseDTO = cartMapper.toCartResponseDTO(cart);
+        return SuccessResponse.of(cartResponseDTO).toResponseEntity();
     }
 
     @HasRoles({"USER"})

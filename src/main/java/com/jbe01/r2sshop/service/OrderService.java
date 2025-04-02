@@ -13,4 +13,6 @@ public interface OrderService {
     OrderDetails getOrder(long id);
     void updateOrder(Long orderId, OrderDetails updatedOrder);
     void deleteOrder(long id);
+    int countOrdersByUser();
+    int countOrders();
 }

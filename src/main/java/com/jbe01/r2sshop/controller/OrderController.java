@@ -1,8 +1,10 @@
 package com.jbe01.r2sshop.controller;
 
 import com.jbe01.r2sshop.aspect.HasRoles;
+import com.jbe01.r2sshop.dto.responses.OrderDetailsDTO;
 import com.jbe01.r2sshop.entity.OrderDetails;
 import com.jbe01.r2sshop.handler.SuccessResponse;
+import com.jbe01.r2sshop.mapper.OrderDetailsMapper;
 import com.jbe01.r2sshop.model.Metadata;
 import com.jbe01.r2sshop.service.OrderService;
 import com.jbe01.r2sshop.util.PaginationUtil;
@@ -19,8 +21,11 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    OrderDetailsMapper orderDetailsMapper;
+
     @GetMapping
-    public ResponseEntity<SuccessResponse<List<OrderDetails>>> getOrders(
+    public ResponseEntity<SuccessResponse<List<OrderDetailsDTO>>> getOrders(
             @RequestParam(defaultValue = "0", required = false, name = "page") int page,
             @RequestParam(defaultValue = "10", required = false, name = "size") int size,
             @RequestParam(name = "sorts", required = false) String sorts
@@ -31,13 +36,13 @@ public class OrderController {
 
         metadata.setPageNumber(page);
         metadata.setPageSize(size);
-
-        return SuccessResponse.of(orderService.getOrders(pageRequest), metadata).toResponseEntity();
+        metadata.setTotalCount(orderService.countOrders());
+        return SuccessResponse.of(orderDetailsMapper.toOrderDetailsList(orderService.getOrders(pageRequest)), metadata).toResponseEntity();
     }
 
     @HasRoles({"USER"})
     @GetMapping("/by-user")
-    public List<OrderDetails> getOrderByUserId(
+    public ResponseEntity<SuccessResponse<List<OrderDetailsDTO>>> getOrderByUserId(
             @RequestParam(defaultValue = "0", required = false, name = "page") int page,
             @RequestParam(defaultValue = "10", required = false, name = "size") int size,
             @RequestParam(name = "sorts", required = false) String sorts
@@ -48,14 +53,19 @@ public class OrderController {
 
         metadata.setPageNumber(page);
         metadata.setPageSize(size);
+        metadata.setTotalCount(orderService.countOrdersByUser());
 
-        return orderService.getOrdersByUser(pageRequest);
+        var orders = orderService.getOrdersByUser(pageRequest);
+
+        return SuccessResponse.of(orderDetailsMapper.toOrderDetailsList(orders), metadata).toResponseEntity();
     }
 
     @HasRoles({"USER", "ADMIN", "OPERATOR"})
     @PostMapping
-    public OrderDetails createOrder() {
-        return orderService.createOrder();
+    public ResponseEntity<SuccessResponse<OrderDetailsDTO>> createOrder() {
+        OrderDetails orderDetails = orderService.createOrder();
+
+        return SuccessResponse.of(orderDetailsMapper.toOrderDetailsDto(orderDetails)).toResponseEntity();
     }
 
     @HasRoles({"ADMIN", "OPERATOR"})
